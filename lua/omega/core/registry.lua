@@ -279,11 +279,12 @@ end
 function M.init()
     local base_path = vim.fn.stdpath("config") .. "/lua"
 
-    local path = base_path .. "/omega/infra/langs"
+    local path = base_path .. "/user/langs"
 
-    -- Only scan if the directory actually exists
+    -- Only scan if directory exists
     if vim.fn.isdirectory(path) == 1 then
-        local found = scan_dir(path, source)
+        local found = scan_dir(path, "user")
+
         for _, spec in ipairs(found) do
             M.register(spec)
         end

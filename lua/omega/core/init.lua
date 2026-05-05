@@ -4,10 +4,8 @@ local state = require("omega.core.state")
 function M.init()
     require("omega.core.registry").init()
 
-    --- @deprecated This function call has been deprcated for lazy to handle
-    ---require("omega.core.loader").init()
-    ---
-    ---
+    require("omega.core.loader").init()
+
     require("omega.core.shim").install()
 
     -- 1. Baseline
