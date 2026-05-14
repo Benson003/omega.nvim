@@ -63,6 +63,7 @@ function M.setup()
 				vim.notify("Omega Infra failed to load: " .. err_infra, vim.log.levels.ERROR)
 			end
 
+			require("omega.core.shim").install()
 			-- Load User Overrides
 			local ok_ov, overrides = pcall(require, "omega.core.overrides")
 			if ok_ov then
@@ -70,7 +71,6 @@ function M.setup()
 			end
 
 			-- Finalize: Flush the gathered state to Neovim
-			require("omega.core.shim").install()
 			require("omega.core.editor").apply()
 
 			-- Trigger background maintenance tasks
