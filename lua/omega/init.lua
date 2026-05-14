@@ -41,7 +41,7 @@ function M.setup()
     -- 1. Setup the core engine (Immediate)
     -- Must run now so the shim is active when other plugins load
     require("omega.core.registry").init()
-    require("omega.core.shim").install()
+    --require("omega.core.shim").install()
 
     -- 2. Baseline: Load internal defaults with instrumentation OFF
     -- Immediate setup for standard Neovim options
