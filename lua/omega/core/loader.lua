@@ -151,28 +151,21 @@ function M.init()
     end)
 end
 
+-- Inside your loader.lua
 function M.get_lazy_specs()
-    -- 1. 'user' files are still in your config directory
+    -- User config stays in .config/nvim/lua
     local config_base = vim.fn.stdpath("config") .. "/lua"
 
-    -- 2. 'infra' files are now in the plugin repo.
-    -- We find the 'lua/omega' folder wherever it exists in Neovim's Runtime Path.
-    local omega_rtp = vim.api.nvim_get_runtime_file("lua/omega", false)
-    local infra_path = ""
+    -- Infra files live in .local/share/nvim/lazy/omega.nvim/lua/omega
+    -- We use /lazy/omega.nvim because that is the folder name created from the repo
+    local data_base   = vim.fn.stdpath("data") .. "/lazy/omega.nvim/lua/omega"
 
-    if #omega_rtp > 0 then
-        -- This points to the actual path of the abstracted plugin
-        infra_path = omega_rtp[1] .. "/infra/plugins"
-    end
+    -- Scans
+    local infra       = scan_dir(data_base .. "/infra/plugins", "infra")
+    local extra       = scan_dir(config_base .. "/user/extras", "extra")
+    local ui          = scan_dir(config_base .. "/user/ui", "ui")
 
-    -- 3. Perform the scans
-    -- If infra_path is empty (plugin not installed yet), scan_dir will just return {}
-    local infra  = infra_path ~= "" and scan_dir(infra_path, "infra") or {}
-    local extra  = scan_dir(config_base .. "/user/extras", "extra")
-    local ui     = scan_dir(config_base .. "/user/ui", "ui")
-
-    -- 4. Merge and Audit as usual
-    local merged = startup_merge(infra, ui, extra)
+    local merged      = startup_merge(infra, ui, extra)
 
     vim.schedule(function()
         audit_merge(infra, ui, extra)
