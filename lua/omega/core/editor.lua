@@ -3,21 +3,22 @@ local M = {}
 local diag = require("omega.core.diagnostics")
 
 
-local state = {
+_G._omega_editor_state = _G._omega_editor_state or {
     commands = {},
     keymaps = {},
     autocmds = {},
     options = {},
 }
 
+local state = _G._omega_editor_state
 
 
 local function apply_options()
     for k, v in pairs(state.options) do
         local ok, err = pcall(vim.api.nvim_set_option_value, k, v, {})
         if not ok then
-            diag.add("runtime","warnings",{ 
-                type = "invalid_option",detail = err,
+            diag.add("runtime", "warnings", {
+                type = "invalid_option", detail = err,
             })
         end
     end
@@ -102,7 +103,7 @@ local function apply_autocmds()
 
         vim.api.nvim_create_autocmd(spec.event, {
             group = group,
-            pattern = spec.opts and spec.opts.pattern,
+            pattern = (spec.opts and spec.opts.pattern) or "*",
             callback = spec.opts and spec.opts.callback,
             desc = spec.opts and spec.opts.desc,
         })
