@@ -3,13 +3,11 @@ local M = {}
 function M.attach(bufnr, ts_spec)
     if not ts_spec or not ts_spec.host then return end
 
-    -- Activate highlighting for the specific host language
-    local ok, _ = pcall(vim.treesitter.start, bufnr, ts_spec.host)
-    if not ok then
-        return
-    end
-    -- Injections are handled automatically by Neovim if the parsers
-    -- are present in the rtp, which our provisioner ensures.
+    -- Check if parser is actually available in the runtime path
+    local has_parser = #vim.api.nvim_get_runtime_file("parser/" .. ts_spec.host .. ".*", false) > 0
+    if not has_parser then return end
+
+    pcall(vim.treesitter.start, bufnr, ts_spec.host)
 end
 
 return M

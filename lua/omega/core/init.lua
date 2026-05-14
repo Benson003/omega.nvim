@@ -2,34 +2,36 @@ local M = {}
 local state = require("omega.core.state")
 
 function M.init()
-    -- 1. Setup the core engine first
+    -- 1. Setup the core engine (Must be immediate)
     require("omega.core.registry").init()
     require("omega.core.shim").install()
 
     -- 2. Baseline: Load internal defaults with instrumentation OFF
-    -- This ensures defaults populate the state table directly via editor.lua
+    -- This is safe to do immediately as it has no external dependencies
     state.disable_instrumentation()
     require("omega.core.default").init()
-
-    -- 3. Enable Instrumentation BEFORE loading external configs
-    -- This allows the shim to catch standard vim.keymap/vim.opt calls
     state.enable_instrumentation()
 
-    -- 4. Load dynamic content (These will now be caught by the shim)
-    require("omega.infra").init()
-    require("omega.core.overrides").load()
+    -- 3. THE FIX: Schedule the "Heavy Lifting"
+    -- This moves Step 4 & 5 to the next event loop tick.
+    -- By then, Lazy.nvim will have initialized the Runtime Path (rtp).
+    vim.schedule(function()
+        -- Load dynamic content (Caught by shim)
+        -- This will now find 'snacks' and 'blink' because rtp is ready
+        require("omega.infra").init()
+        require("omega.core.overrides").load()
 
-    -- 5. Finalize: Flush the gathered state to Neovim
-    require("omega.core.editor").apply()
+        -- Finalize: Flush everything to Neovim
+        require("omega.core.editor").apply()
+    end)
 
-    -- 6. Background tasks (Keep this last and deferred)
+    -- 4. Background tasks (Keep this deferred as is)
     vim.defer_fn(function()
         local reg = require("omega.core.registry")
 
-        -- 1. Async Mason Installation
+        -- Async Mason Installation
         local tools = reg.get_all_mason_tools()
         local ok_m, mason_reg = pcall(require, "mason-registry")
-
         if ok_m then
             for _, tool in ipairs(tools) do
                 mason_reg.refresh(function()
@@ -41,7 +43,7 @@ function M.init()
             end
         end
 
-        -- 2. Treesitter Parsers
+        -- Treesitter Parsers
         local parsers = reg.get_all_treesitter_parsers()
         for _, p in ipairs(parsers) do
             local has_parser = #vim.api.nvim_get_runtime_file("parser/" .. p .. ".*", false) > 0

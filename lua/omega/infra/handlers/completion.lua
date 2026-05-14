@@ -1,16 +1,14 @@
-
 local M = {}
 
-
 function M.attach(bufnr)
-    -- Ensure the LSP is the primary source for this buffer
-    -- This helps blink coordinate with the LSP attached by your resolver
+    -- This is safe; it's standard Neovim
     vim.bo[bufnr].omnifunc = "v:lua.vim.lsp.omnifunc"
 
-    
-    -- Optional: If you want to force a blink refresh when the resolver attaches
-    -- pcall(require('blink.cmp').reload) 
+    -- Only reload blink if it's actually loaded
+    local ok, blink = pcall(require, "blink.cmp")
+    if ok then
+        pcall(blink.reload) -- Uncomment if you need the force refresh
+    end
 end
 
 return M
-
