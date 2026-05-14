@@ -135,14 +135,14 @@ end
 -- =========================
 
 function M.init()
-    local base   = vim.fn.stdpath("config") .. "/lua"
-
-    local infra  = scan_dir(base .. "/omega/infra/plugins", "infra")
-    local extra  = scan_dir(base .. "/user/extras", "extra")
-    local ui     = scan_dir(base .. "/user/ui", "ui")
+    local base      = vim.fn.stdpath("config") .. "/lua"
+    local data_path = vim.fn.stdpath("data") .. "/lazy/omega.nvim"
+    local infra     = scan_dir(data_path .. "/lua/omega/infra/plugins")
+    local extra     = scan_dir(base .. "/user/extras", "extra")
+    local ui        = scan_dir(base .. "/user/ui", "ui")
 
     -- 1. safe startup (never blocks)
-    local merged = startup_merge(infra, ui, extra)
+    local merged    = startup_merge(infra, ui, extra)
     require("lazy").setup(merged)
 
     -- 2. async audit (non-blocking diagnostics)
@@ -152,14 +152,14 @@ function M.init()
 end
 
 function M.get_lazy_specs()
-    local base   = vim.fn.stdpath("config") .. "/lua"
-
-    local infra  = scan_dir(base .. "/omega/infra/plugins", "infra")
-    local extra  = scan_dir(base .. "/user/extras", "extra")
-    local ui     = scan_dir(base .. "/user/ui", "ui")
+    local base      = vim.fn.stdpath("config") .. "/lua"
+    local data_path = vim.fn.stdpath("data") .. "/lazy/omega.nvim"
+    local infra     = scan_dir(data_path .. "/lua/omega/infra/plugins")
+    local extra     = scan_dir(base .. "/user/extras", "extra")
+    local ui        = scan_dir(base .. "/user/ui", "ui")
 
     -- 1. Get the merged list
-    local merged = startup_merge(infra, ui, extra)
+    local merged    = startup_merge(infra, ui, extra)
 
     -- 2. Schedule the audit for later (non-blocking)
     vim.schedule(function()
