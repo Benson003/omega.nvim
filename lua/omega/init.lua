@@ -3,36 +3,36 @@ local M = {}
 --- Internal function to handle Mason and Treesitter installations
 --- Moved inside the module scope to ensure M.setup can access it
 local function init_background_tasks()
-	vim.defer_fn(function()
-		local reg = require("omega.core.registry")
-
-		-- 1. Async Mason Installation
-		local ok_m, mason_reg = pcall(require, "mason-registry")
-		if ok_m then
+	local reg = require("omega.core.registry")
+	local ok_m, mason_reg = pcall(require, "mason-registry")
+	if ok_m then
+		mason_reg.refresh(function()
 			local tools = reg.get_all_mason_tools()
 			for _, tool in ipairs(tools) do
-				mason_reg.refresh(function()
-					local ok_p, p = pcall(mason_reg.get_package, tool)
-					if ok_p and not p:is_installed() then
-						p:install()
-					end
-				end)
+				local ok_p, p = pcall(mason_reg.get_package, tool)
+				if ok_p and not p:is_installed() then
+					p:install()
+				end
 			end
-		end
+		end)
+	end
 
-		-- 2. Treesitter Parsers
-		local parsers = reg.get_all_treesitter_parsers()
-		for _, p in ipairs(parsers) do
-			-- Check if parser is already installed in runtime path
-			local has_parser = #vim.api.nvim_get_runtime_file("parser/" .. p .. ".*", false) > 0
-			if not has_parser then
-				vim.schedule(function()
-					local cmd = string.format("TSInstall %s", p)
-					pcall(vim.cmd, cmd)
-				end)
+	local parsers = reg.get_all_treesitter_parsers()
+	local ok_ts, ts_manager = pcall(require, "tree-sitter-manager")
+
+	for _, p in ipairs(parsers) do
+		local has_parser = #vim.api.nvim_get_runtime_file("parser/" .. p .. ".*", false) > 0
+		if not has_parser then
+			if ok_ts then
+				ts_manager.install(p)
+			else
+				vim.notify(
+					string.format("[Omega] Framework Error: tree-sitter-manager missing. Cannot install %s", p),
+					vim.log.levels.ERROR
+				)
 			end
 		end
-	end, 500) -- Ensures UI is idle before triggering intensive installs
+	end
 end
 
 function M.setup()
